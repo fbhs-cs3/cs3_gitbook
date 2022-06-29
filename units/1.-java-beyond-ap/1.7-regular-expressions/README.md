@@ -1,0 +1,709 @@
+---
+description: Many of the examples and explanations are from the Java SE RegEx Tutorial
+---
+
+# 1.7 Regular Expressions
+
+Many of the examples and explanations are from the [Java SE RegEx Tutorial](https://docs.oracle.com/javase/tutorial/essential/regex/)&#x20;
+
+<mark style="color:red;">**Regular expressions**</mark> (regex) are a way to describe a set of strings based on common characteristics shared by each string in the set.
+
+## RegexTestHarness.java&#x20;
+
+We will use the RegexTestHarness class to explore regular expressions.  It is located in `Examples\Unit01\07_regular_expressions` folder.
+
+For now, we won't worry about the code, just compile and run `RegexTestHarness`.
+
+## String Literals
+
+The most basic form of pattern matching supported by **regular expressions** is the match of a string literal. For example, if the regular expression is _foo_ and the input string is _foo_, the match will succeed because the strings are identical.
+
+Try this out with the test harness:
+
+```
+Enter your regex: foo
+Enter input string to search: foo
+I found the text foo starting at index 0 and ending at index 3.
+```
+
+This match was a success.
+
+{% hint style="info" %}
+Note that while the input string is 3 characters long, the start index is 0 and the end index is 3.
+
+By convention, ranges are inclusive of the beginning index and exclusive of the end index, as shown in the following figure:
+
+<img src="https://docs.oracle.com/javase/tutorial/figures/essential/cells.gif" alt="" data-size="original">
+
+Each character in the string resides in its own _cell_, with the index positions pointing between each cell. The string "foo" starts at index 0 and ends at index 3, even though the characters themselves only occupy cells 0, 1, and 2.
+
+With subsequent matches, you'll notice some overlap; the start index for the next match is the same as the end index of the previous match:
+
+```
+Enter your regex: foo
+Enter input string to search: foofoofoo
+I found the text foo starting at index 0 and ending at index 3.
+I found the text foo starting at index 3 and ending at index 6.
+I found the text foo starting at index 6 and ending at index 9.
+```
+{% endhint %}
+
+## Metacharacters
+
+Regex also supports a number of special characters that affect the way a pattern is matched.
+
+Change the regular expression to `cat.` and the input to `cats`:
+
+```
+Enter your regex: cat.
+Enter input string to search: cats
+I found the text cats starting at index 0 and ending at index 4.
+```
+
+The match still succeeds, even though the dot "." is not present in the input string.
+
+It succeeds because the dot is a <mark style="color:red;">**metacharacter**</mark> — a character with special meaning interpreted by the matcher.
+
+The metacharacter `.` means "any character" which is why the match succeeds in this example.
+
+The metacharacters supported: `<([{\^-=$!|]})?*+.>`
+
+{% hint style="warning" %}
+Note: There are two ways to force a metacharacter to be treated as an ordinary character:
+
+* precede the metacharacter with a backslash, or
+* enclose it within `\Q` (which starts the quote) and `\E` (which ends it).
+
+When using this technique, the `\Q` and `\E` can be placed at any location within the expression, provided that the `\Q` comes first.
+{% endhint %}
+
+## Character Classes
+
+The left-hand column specifies the regular expression constructs, while the right-hand column describes the conditions under which each construct will match.
+
+| Construct            | Description                                    |
+| -------------------- | ---------------------------------------------- |
+| \[abc]               | a, b, or c                                     |
+| \[^abc]              | Any character except a, b, or c                |
+| \[a-zA-z]            | a through z, or A through Z, inclusive (range) |
+| \[a-d\[m-p]]         | a through d, or m through p: \[a-dm-p]         |
+| \[a-z && \[def]]     | d, e, or f (intersection)                      |
+| \[a-z && \[^bc]]     | a through z, except for b and c                |
+| \[ \[a-z && \[^m-p]] | a through z, and not m through p               |
+
+The most basic form of a character class is to simply place a set of characters side-by-side within square brackets.
+
+For example, the regular expression `[bcr]at` will match the words "bat", "cat", or "rat" because it defines a character class (accepting either "b", "c", or "r") as its first character. &#x20;
+
+Try these in the `RegexTestHarness`
+
+### Negation
+
+To match all characters except those listed, insert the `^` metacharacter at the beginning of the character class.
+
+This technique is known as <mark style="color:red;">**negation**</mark>.
+
+```
+Enter your regex: [^bcr]at
+Enter input string to search: bat
+No match found.
+
+Enter your regex: [^bcr]at
+Enter input string to search: hat
+I found the text "hat" starting at index 0 and ending at index 3.
+```
+
+The match is successful only if the first character of the input string does not contain any of the characters defined by the character class.
+
+### Range
+
+Sometimes you'll want to define a character class that includes a **range** of values, such as the letters "a through h" or the numbers "1 through 5".
+
+To specify a range, simply insert the "-" metacharacter between the first and last character to be matched, such as `[1-5]` or `[a-h]`.
+
+You can also place different ranges beside each other within the class to further expand the match possibilities. For example, `[a-zA-Z]` will match any letter of the alphabet: a to z (lowercase) or A to Z (uppercase).
+
+
+
+Here are some examples of ranges and negation (test them yourself!):
+
+```
+Enter your regex: [a-c]
+Enter input string to search: b
+I found the text "b" starting at index 0 and ending at index 1.
+
+Enter your regex: foo[1-5]
+Enter input string to search: foo1
+I found the text "foo1" starting at index 0 and ending at index 4.
+
+Enter your regex: foo[^1-5]
+Enter input string to search: foo6
+I found the text "foo6" starting at index 0 and ending at index 4.
+```
+
+### Union
+
+You can also use <mark style="color:red;">**unions**</mark> to create a single character class comprised of two or more separate character classes.
+
+To create a union, simply nest one class inside the other, such as `[0-4[6-8]]`.
+
+This particular union creates a single character class that matches the numbers 0, 1, 2, 3, 4, 6, 7, and 8.
+
+### Intersection
+
+To create a single character class matching only the characters common to all of its nested classes, called an <mark style="color:red;">**intersection**</mark>, use `&&`, as in `[0-9&&[345]]`
+
+This particular intersection creates a single character class matching only the numbers common to both character classes: 3, 4, and 5.
+
+### Subtraction
+
+You can use <mark style="color:red;">**subtraction**</mark> to negate one or more nested character classes, such as `[0-9&&[^345]]`
+
+This example creates a single character class that matches everything from 0 to 9, except the numbers 3, 4, and 5.
+
+{% hint style="warning" %}
+Take a minute and revisit the [character classes table](./#character-classes) above and make sure you understand what each one does.  Test them in the RegexTestHarness!
+{% endhint %}
+
+## Predefined Character Classes
+
+The regex API in Java contains a few useful _predefined character classes_ which offer convenient shorthands for commonly used regular expressions.
+
+| Construct | Description                               |
+| --------- | ----------------------------------------- |
+| .         | Any character                             |
+| \d        | A digit: `[0-9]`                          |
+| \D        | A non-digit: `[^0-9]`                     |
+| \s        | A whitespace character: `[ \t\n\x0B\f\r]` |
+| \S        | A non-whitespace character: `[^\s]`       |
+| \w        | A word character: `[a-zA-z_0-9]`          |
+| \W        | A non-word character: `[^\w]`             |
+
+Constructs beginning with a backslash are called **escaped constructs**.
+
+If you are using an escaped construct within a string literal, you must precede the backslash with another backslash for the string to compile.
+
+```java
+private final String REGEX = "\\d"; // a single digit
+```
+
+In this example `\d` is the regular expression; the extra backslash is required for the code to compile.
+
+The test harness reads the expressions directly from the Console, however, so the extra backslash is unnecessary.
+
+### Examples
+
+```
+Enter your regex: .
+Enter input string to search: @
+I found the text "@" starting at index 0 and ending at index 1.
+
+Enter your regex: . 
+Enter input string to search: 1
+I found the text "1" starting at index 0 and ending at index 1.
+
+Enter your regex: .
+Enter input string to search: a
+I found the text "a" starting at index 0 and ending at index 1.
+```
+
+```
+Enter your regex: \d
+Enter input string to search: 1
+I found the text "1" starting at index 0 and ending at index 1.
+
+Enter your regex: \d
+Enter input string to search: a
+No match found.
+
+Enter your regex: \D
+Enter input string to search: 1
+No match found.
+
+Enter your regex: \D
+Enter input string to search: a
+I found the text "a" starting at index 0 and ending at index 1.
+```
+
+```
+Enter your regex: \s
+Enter input string to search:  
+I found the text " " starting at index 0 and ending at index 1.
+
+Enter your regex: \s
+Enter input string to search: a
+No match found.
+
+Enter your regex: \S
+Enter input string to search:  
+No match found.
+
+Enter your regex: \S
+Enter input string to search: a
+I found the text "a" starting at index 0 and ending at index 1.
+```
+
+```
+Enter your regex: \w
+Enter input string to search: a
+I found the text "a" starting at index 0 and ending at index 1.
+
+Enter your regex: \w
+Enter input string to search: !
+No match found.
+
+Enter your regex: \W
+Enter input string to search: a
+No match found.
+
+Enter your regex: \W
+Enter input string to search: !
+I found the text "!" starting at index 0 and ending at index 1.
+```
+
+## Quantifiers
+
+<mark style="color:red;">**Quantifiers**</mark> <mark style="color:red;"></mark><mark style="color:red;"></mark> allow you to specify the number of occurrences to match against.
+
+| Greedy | Reluctant | Possessive | Meaning                                 |
+| ------ | --------- | ---------- | --------------------------------------- |
+| X?     | X??       | X?+        | X, once or not at all                   |
+| X\*    | X\*?      | X\*+       | X, zero or more times                   |
+| X+     | X+?       | X++        | X, one or more times                    |
+| X{n}   | X{n}?     | X{n}+      | X, exactly n times                      |
+| X{n, } | X{n, }?   | X{n, }+    | X, at least n times                     |
+| X{n,m} | X{n,m}?   | X{n,m}+    | X, at least n but not more than m times |
+
+Let's start our look at quantifiers by creating three different regular expressions: the letter "a" followed by either ?, \*, or +. Let's see what happens when these expressions are tested against an empty input string "":
+
+```
+Enter your regex: a?
+Enter input string to search: 
+I found the text "" starting at index 0 and ending at index 0.
+
+Enter your regex: a*
+Enter input string to search: 
+I found the text "" starting at index 0 and ending at index 0.
+
+Enter your regex: a+
+Enter input string to search: 
+No match found.
+```
+
+In the above example, the match is successful in the first two cases because the expressions a? and a\* both allow for zero occurrences of the letter a.
+
+Notice that the start and end indices are both zero, which is unlike any of the examples we've seen so far.
+
+The empty input string `""` has no length, so the test simply matches nothing at index 0. Matches of this sort are known as a <mark style="color:red;">zero-length matches</mark>. A zero-length match can occur in several cases:
+
+* in an empty input string
+* at the beginning of an input string
+* after the last character of an input string
+* in between any two characters of an input string
+
+Zero-length matches are easily identifiable because they always start and end at the same index position.
+
+#### Now change the input string to the letter "a" five times in a row:
+
+```
+Enter your regex: a?
+Enter input string to search: aaaaa
+I found the text "a" starting at index 0 and ending at index 1.
+I found the text "a" starting at index 1 and ending at index 2.
+I found the text "a" starting at index 2 and ending at index 3.
+I found the text "a" starting at index 3 and ending at index 4.
+I found the text "a" starting at index 4 and ending at index 5.
+I found the text "" starting at index 5 and ending at index 5.
+
+Enter your regex: a*
+Enter input string to search: aaaaa
+I found the text "aaaaa" starting at index 0 and ending at index 5.
+I found the text "" starting at index 5 and ending at index 5.
+
+Enter your regex: a+
+Enter input string to search: aaaaa
+I found the text "aaaaa" starting at index 0 and ending at index 5.
+```
+
+The expression `a?` finds an individual match for each character, since it matches when "a" appears zero or one times. The expression `a*` finds two separate matches: all of the letter "a"'s in the first match, then the zero-length match after the last character at index 5. And finally, `a+` matches all occurrences of the letter "a", ignoring the presence of "nothing" at the last index.
+
+#### What is the results if the first two quantifiers encounter a letter other than "a".
+
+For example, what happens if it encounters the letter "b", as in "ababaaaab"?
+
+```
+Enter your regex: a?
+Enter input string to search: ababaaaab
+I found the text "a" starting at index 0 and ending at index 1.
+I found the text "" starting at index 1 and ending at index 1.
+I found the text "a" starting at index 2 and ending at index 3.
+I found the text "" starting at index 3 and ending at index 3.
+I found the text "a" starting at index 4 and ending at index 5.
+I found the text "a" starting at index 5 and ending at index 6.
+I found the text "a" starting at index 6 and ending at index 7.
+I found the text "a" starting at index 7 and ending at index 8.
+I found the text "" starting at index 8 and ending at index 8.
+I found the text "" starting at index 9 and ending at index 9.
+
+Enter your regex: a*
+Enter input string to search: ababaaaab
+I found the text "a" starting at index 0 and ending at index 1.
+I found the text "" starting at index 1 and ending at index 1.
+I found the text "a" starting at index 2 and ending at index 3.
+I found the text "" starting at index 3 and ending at index 3.
+I found the text "aaaa" starting at index 4 and ending at index 8.
+I found the text "" starting at index 8 and ending at index 8.
+I found the text "" starting at index 9 and ending at index 9.
+
+Enter your regex: a+
+Enter input string to search: ababaaaab
+I found the text "a" starting at index 0 and ending at index 1.
+I found the text "a" starting at index 2 and ending at index 3.
+I found the text "aaaa" starting at index 4 and ending at index 8.
+```
+
+Even though the letter "b" appears in cells 1, 3, and 8, the output reports a zero-length match at those locations. The regular expression `a?` is not specifically looking for the letter "b"; it's merely looking for the presence (or lack thereof) of the letter "a". If the quantifier allows for a match of "a" zero times, anything in the input string that's not an "a" **will show up as a zero-length match**.
+
+### Exactly n
+
+To match a pattern exactly n number of times, simply specify the number inside a set of braces:
+
+```
+Enter your regex: a{3}
+Enter input string to search: aa
+No match found.
+
+Enter your regex: a{3}
+Enter input string to search: aaa
+I found the text "aaa" starting at index 0 and ending at index 3.
+
+Enter your regex: a{3}
+Enter input string to search: aaaa
+I found the text "aaa" starting at index 0 and ending at index 3.
+```
+
+If the pattern should appear again after that point, it would trigger subsequent matches:
+
+```
+Enter your regex: a{3}
+Enter input string to search: aaaaaaaaa
+I found the text "aaa" starting at index 0 and ending at index 3.
+I found the text "aaa" starting at index 3 and ending at index 6.
+I found the text "aaa" starting at index 6 and ending at index 9.
+```
+
+### At least n
+
+To require a pattern to appear at least n times, add a comma after the number:
+
+```
+Enter your regex: a{3,}
+Enter input string to search: aaaaaaaaa
+I found the text "aaaaaaaaa" starting at index 0 and ending at index 9.
+```
+
+### At least m, at most n
+
+To specify an upper limit on the number of occurrences, add a second number inside the braces:
+
+```
+Enter your regex: a{3,6} // find at least 3 (but no more than 6) a's in a row
+Enter input string to search: aaaaaaaaa
+I found the text "aaaaaa" starting at index 0 and ending at index 6.
+I found the text "aaa" starting at index 6 and ending at index 9.
+```
+
+## Capturing Groups and Character Classes with Quantifiers
+
+Until now, we've only tested quantifiers on input strings containing one character.
+
+<details>
+
+<summary>What should <code>abc+</code> be looking for? (Check your thinking in the RegexTestHarness)</summary>
+
+* `a` followed by `b`, followed by `c` one or more times.
+* **not** `abc` one or more times!
+
+</details>
+
+<details>
+
+<summary>What should <code>[abc]+</code> be looking for? (Check your thinking in the RegexTestHarness))</summary>
+
+* a or b or c, one or more times
+
+</details>
+
+<details>
+
+<summary>What should <code>(abc)+</code> be looking for? (Check your thinking in the RegexTestHarness)</summary>
+
+"abc" one or more times
+
+</details>
+
+#### Examples 1/2
+
+```
+Enter your regex: (dog){3}
+Enter input string to search: dogdogdogdogdogdog
+I found the text "dogdogdog" starting at index 0 and ending at index 9.
+I found the text "dogdogdog" starting at index 9 and ending at index 18.
+
+Enter your regex: dog{3}
+Enter input string to search: dogdogdogdogdogdog
+No match found.
+```
+
+Here the first example finds three matches, since the quantifier applies to the entire capturing group. Remove the parentheses, however, and the match fails because the quantifier {3} now applies only to the letter "g".
+
+#### Examples 3/4
+
+```
+Enter your regex: [abc]{3}
+Enter input string to search: abccabaaaccbbbc
+I found the text "abc" starting at index 0 and ending at index 3.
+I found the text "cab" starting at index 3 and ending at index 6.
+I found the text "aaa" starting at index 6 and ending at index 9.
+I found the text "ccb" starting at index 9 and ending at index 12.
+I found the text "bbc" starting at index 12 and ending at index 15.
+
+Enter your regex: abc{3}
+Enter input string to search: abccabaaaccbbbc
+No match found.
+```
+
+Here the quantifier {3} applies to the entire character class in the first example, but only to the letter "c" in the second.
+
+## Differences Among Greedy/Reluctant/Possessive Quantifiers
+
+### Greedy Quantifiers
+
+"Greedy" because they force the matcher to read in (or eat) the entire input string prior to attempting the first match.
+
+If the first match attempt (the entire input string) fails, the matcher backs off the input string by one character and tries again, repeating the process until a match is found or there are no more characters left to back off from.
+
+Depending on the quantifier used in the expression, the last thing it will try matching against is 1 or 0 characters.
+
+```
+Enter your regex: .*foo  // greedy quantifier
+Enter input string to search: xfooxxxxxxfoo
+I found the text "xfooxxxxxxfoo" starting at index 0 and ending at index 13.
+```
+
+Uses the greedy quantifier .\* to find "anything", zero or more times, followed by the letters "f" "o" "o".
+
+Because the quantifier is greedy, the .\* portion of the expression first eats the entire input string. At this point, the overall expression cannot succeed, because the last three letters ("f" "o" "o") have already been consumed.
+
+So the matcher slowly backs off one letter at a time until the rightmost occurrence of "foo" has been regurgitated, at which point the match succeeds and the search ends.
+
+### Reluctant Quantifiers
+
+Take the opposite approach of greedy: They start at the beginning of the input string, then reluctantly eat one character at a time looking for a match.
+
+The last thing they try is the entire input string.
+
+```
+Enter your regex: .*?foo  // reluctant quantifier
+Enter input string to search: xfooxxxxxxfoo
+I found the text "xfoo" starting at index 0 and ending at index 4.
+I found the text "xxxxxxfoo" starting at index 4 and ending at index 13.
+```
+
+Starts by first consuming "nothing". Because "foo" doesn't appear at the beginning of the string, it's forced to swallow the first letter (an "x"), which triggers the first match at 0 and 4.
+
+Continues the process until the input string is exhausted. It finds another match at 4 and 13.
+
+### Possessive Quantifiers
+
+Always eat the entire input string, trying once (and only once) for a match.
+
+Unlike the greedy quantifiers, possessive quantifiers never back off, even if doing so would allow the overall match to succeed.
+
+```
+Enter your regex: .*+foo // possessive quantifier
+Enter input string to search: xfooxxxxxxfoo
+No match found.
+```
+
+Fails to find a match because the quantifier is possessive. In this case, the entire input string is consumed by .\*+, leaving nothing left over to satisfy the "foo" at the end of the expression.
+
+Use a possessive quantifier for situations where you want to seize all of something without ever backing off; it will outperform the equivalent greedy quantifier in cases where the match is not immediately found.
+
+## Boundary Matches
+
+Until now, we've only been interested in whether or not a match is found at some location within a particular input string.  We didn't care about _where_ in the string the match was taking place.
+
+You can make your pattern matches more precise by specifying _where_ in the string a match should take place. For example, let's say you're interested in finding a particular word, but only if it appears at the beginning or end of a line.
+
+| Boundary Construct | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| ^                  | The beginning of a line                           |
+| $                  | The end of a line                                 |
+| \b                 | A word boundary                                   |
+| \B                 | A non-word boundary                               |
+| \A                 | The beginning of the input                        |
+| \G                 | The end of the previous match                     |
+| \Z                 | The end of the input (can be followed by newline) |
+| \z                 | The end of the input (no newline after)           |
+
+### Beginning/End of Line
+
+```
+Enter your regex: ^dog$
+Enter input string to search: dog
+I found the text "dog" starting at index 0 and ending at index 3.
+```
+
+Successful because the pattern occupies the entire input string.
+
+```
+Enter your regex: ^dog$
+Enter input string to search:       dog
+No match found.
+```
+
+Fails because the input string contains extra whitespace at the beginning.
+
+```
+Enter your regex: \s*dog$
+Enter input string to search:             dog
+I found the text "            dog" starting at index 0 and ending at index 15.
+```
+
+Specifies an expression that allows for unlimited white space, followed by "dog" on the end of the line.
+
+```
+Enter your regex: ^dog\w*
+Enter input string to search: dogblahblah
+I found the text "dogblahblah" starting at index 0 and ending at index 11.
+```
+
+Requires "dog" to be present at the beginning of a line followed by an unlimited number of word characters.
+
+### Begins/Ends on word boundary
+
+To check if a pattern begins and ends on a word boundary (as opposed to a substring within a longer string), just use \b on either side
+
+```
+Enter your regex: \bdog\b
+Enter input string to search: The dog plays in the yard.
+I found the text "dog" starting at index 4 and ending at index 7.
+
+Enter your regex: \bdog\b
+Enter input string to search: The doggie plays in the yard.
+No match found.
+```
+
+### Begins/Ends on non-word boundary
+
+To match the expression on a non-word boundary, use \B instead:
+
+```
+Enter your regex: \bdog\B
+Enter input string to search: The dog plays in the yard.
+No match found.
+
+Enter your regex: \bdog\B
+Enter input string to search: The doggie plays in the yard.
+I found the text "dog" starting at index 4 and ending at index 7.
+```
+
+## Using Regular Expressions with Strings
+
+In order to make the RegexTestHarness, `java.util.regex.Pattern` was used.
+
+`RegexTestHarness.java` is a pretty short program. You should review the code and try to understand what it's doing. &#x20;
+
+```java
+import java.io.Console;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+public class RegexTestHarness {
+
+    public static void main(String[] args){
+        Console console = System.console();  
+        if (console == null) {
+            System.err.println("No console.");
+            System.exit(1);
+        }
+        while (true) {
+
+            Pattern pattern = 
+            Pattern.compile(console.readLine("%nEnter your regex: "));
+
+            Matcher matcher = 
+            pattern.matcher(console.readLine("Enter input string to search: "));
+
+            boolean found = false;
+            while (matcher.find()) {
+                console.format("I found the text" +
+                    " \"%s\" starting at " +
+                    "index %d and ending at index %d.%n",
+                    matcher.group(),
+                    matcher.start(),
+                    matcher.end());
+                found = true;
+            }
+            if(!found){
+                console.format("No match found.%n");
+            }
+        }
+    }
+}
+```
+
+We will be using some `String` methods that mimic the behavior of the `Pattern` class.
+
+### String Regular Expression Methods (not exhaustive)
+
+`public boolean matches(String regex)`&#x20;
+
+> Tells whether or not this string matches the given regular expression.
+
+`public String[] split(String regex)`
+
+> Splits this string around matches of the given regular expression.
+
+`public String replaceFirst(String regex, String replacement)`
+
+> Replaces the first substring of this string that matches the given regular expression with the given replacement.
+
+`public String replaceAll(String regex, String replacement)`
+
+> Replaces each substring of this string that matches the given regular expression with the given replacement.
+
+### A Code Example
+
+We want to check if someone has entered a name (first and last only) with correct capitalization. That is, first letter of each word is capitalized, separated by exactly 1 space.
+
+<details>
+
+<summary>Write down your name in an acceptable way and an unacceptable way, then click to check your understanding.</summary>
+
+"Chad Purdy" would be acceptable.
+
+"ChadPurdy" is unacceptable (no space)
+
+"chad Purdy" unacceptable
+
+"chad purdy" unacceptable
+
+etc.
+
+</details>
+
+<details>
+
+<summary>Write the Java code that would check whether the <code>String name</code> is in an acceptable format.</summary>
+
+```java
+ String name = "Test Name";
+ String regex = "[A-Z][a-z]+ [A-Z][a-z]+";
+ String result = name.matches(regex) ? "ACCEPTABLE" : "UNACCEPTABLE";
+```
+
+Look closely at the regex line. What is it looking for?
+
+</details>
