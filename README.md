@@ -1,7 +1,3 @@
----
-coverY: 0
----
-
 # Welcome to CS 3!
 
 ## Welcome aboard!
