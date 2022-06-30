@@ -26,5 +26,7 @@
 * [2. Algorithm Analysis ](units/2.-algorithm-analysis/README.md)
   * [2.1 Comparing Algorithms](units/2.-algorithm-analysis/2.1-comparing-algorithms/README.md)
     * [2.1 Assignment](units/2.-algorithm-analysis/2.1-comparing-algorithms/2.1-assignment.md)
+  * [2.2 Big O Analysis](units/2.-algorithm-analysis/2.2-big-o-analysis/README.md)
+    * [2.2 Assignment](units/2.-algorithm-analysis/2.2-big-o-analysis/2.2-assignment.md)
 * [3. Recursion](units/3.-recursion.md)
 * [4. Lists](units/4.-lists.md)

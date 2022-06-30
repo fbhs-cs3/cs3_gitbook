@@ -63,3 +63,20 @@ The goal of the analysis of algorithms is to compare algorithms mainly in terms 
 * Number of elements in a matrix
 * Number of bits in the binary representation of the input
 * Vertices and edges in a graph
+
+### Types of Analysis
+
+* Worst case
+  * When the algorithm takes the longest
+  * What we will be doing primarily
+  * Often easier to compute than the average case
+  * Reporting the worst case to your boss or your customers is often “safer” than reporting the average.
+* Best case
+  * When the algorithm takes the least time
+  * Not very interesting
+* Average case
+  * Provides a prediction about the running time of the algorithm
+  * Assumes the input is random
+  * Can be difficult to calculate (we won't be doing this very much)
+
+In many cases, it will turn out the worst and average complexity will turn out to be the same, but again, we will be focused on worst case analysis.

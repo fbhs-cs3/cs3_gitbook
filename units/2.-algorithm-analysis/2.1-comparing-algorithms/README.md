@@ -64,18 +64,6 @@ As you can see in the two images above, when n is relatively small (n<10) the tw
 {% endtab %}
 {% endtabs %}
 
-
-
-### Types of Analysis
-
-* Worst case
-  * Defines the input for which the algorithm takes the longest
-* Best case
-  * Defines the input for which the algorithm takes the least time
-* Average case
-  * Provides a prediction about the running time of the algorithm
-  * Assumes the input is random
-
 ## Big-O Notation
 
 This notation gives the <mark style="color:red;">upper bound</mark> of the given function.
